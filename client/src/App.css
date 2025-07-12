@@ -36,3 +36,46 @@
     transform: rotate(360deg);
   }
 }
+
+.register-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  font-family: sans-serif;
+}
+
+.register-heading {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.register-input {
+  width: 95%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.register-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.register-message {
+  text-align: center;
+  margin-top: 15px;
+  color: green;
+}
