@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
-import Register from './components/Register';
-import Login from './components/Login';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Chat from './pages/Chat';
 
 function App() {
   return (
@@ -10,12 +11,14 @@ function App() {
         <h1>Secure Chat App 🔐</h1>
         <nav>
           <Link to="/register" style={{ marginRight: '10px' }}>Register</Link>
-          <Link to="/login">Login</Link>
+          <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
+          <Link to="/chat">Chat</Link>
         </nav>
         <hr />
         <Routes>
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/chat" element={<Chat />} />
         </Routes>
       </div>
     </Router>
