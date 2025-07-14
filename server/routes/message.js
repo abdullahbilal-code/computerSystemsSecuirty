@@ -28,5 +28,16 @@ router.post('/send', async (req, res) => {
     }
 });
 
+// Get Inbox Messages
+router.get('/inbox/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const messages = await Message.find({ to: email }).sort({ timestamp: -1 });
+
+        res.status(200).json(messages);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;
