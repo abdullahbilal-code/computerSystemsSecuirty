@@ -12,7 +12,7 @@ function App() {
         <nav>
           <Link to="/register" style={{ marginRight: '10px' }}>Register</Link>
           <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
-          <Link to="/chat">Chat</Link>
+          <Link to="/chat" style={{ marginRight: '10px' }}>Send Message</Link>
         </nav>
         <hr />
         <Routes>
