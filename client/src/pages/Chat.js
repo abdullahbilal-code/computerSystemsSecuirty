@@ -18,7 +18,8 @@ function Chat() {
             });
 
             const data = await res.json();
-            setStatus(data.msg || data.error || 'Something went wrong');
+            console.log({data})
+            setStatus(data.message || data.error || 'Something went wrong');
             setMessage('');
         } catch (err) {
             setStatus('Server error');
