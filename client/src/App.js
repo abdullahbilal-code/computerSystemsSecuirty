@@ -10,7 +10,7 @@ function App() {
   return (
     <Router>
       <div style={{ padding: '10px' }}>
-        <h1>Secure Chat App 🔐</h1>
+        <h1>Secure Chat App</h1>
         <nav>
           <Link to="/register" style={{ marginRight: '10px' }}>Register</Link>
           <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
