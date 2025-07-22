@@ -17,12 +17,10 @@ router.post('/send', async (req, res) => {
         const receiver = await User.findOne({ email: to });
         if (!receiver) return res.status(404).json({ msg: 'Recipient not found' });
 
-        const encryptedMsg = encryptWithPublicKey(receiver.publicKey, message);
-
-        const newMessage = new Message({ from, to, content: encryptedMsg });
+        const newMessage = new Message({ from, to, content: message });
         await newMessage.save();
 
-        res.status(200).json({ message: 'Message sent successfully' });
+        res.status(200).json({ msg: 'Message sent successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
