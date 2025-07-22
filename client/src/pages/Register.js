@@ -47,7 +47,7 @@ function Register() {
 
             localStorage.setItem("userEmail", form.email);
 
-            // 4. Send public key and user info to backend
+            // 4. Send email, password, publicKey to backend
             const res = await fetch('https://securechat-n501.onrender.com/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
