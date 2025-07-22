@@ -25,6 +25,8 @@ function Login() {
             if (res.ok) {
                 setMessage(data.msg);
                 setPublicKey(data.publicKey);
+
+                localStorage.setItem('userEmail', form.email);
             } else {
                 setMessage(data.msg || data.error || 'Login failed');
             }
@@ -63,6 +65,9 @@ function Login() {
                     <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                         {publicKey}
                     </pre>
+                    <p style={{ fontSize: '14px', color: 'gray' }}>
+                        🔑 Please keep your private key ready. You'll need to paste or upload it on the Inbox page to decrypt messages.
+                    </p>
                 </div>
             )}
         </div>
