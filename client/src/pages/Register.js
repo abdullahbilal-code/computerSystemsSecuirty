@@ -32,13 +32,22 @@ function Register() {
             const publicKey = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
             const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
 
-            // 3. Export private key and store it locally (secure browser storage preferred)
+            // 3. Export private key and offer it as a download
             const privateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
             const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
-            localStorage.setItem("privateKey", privateKeyBase64);
+
+            // 🟢 Download key as a text file
+            const blob = new Blob([privateKeyBase64], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${form.email}-private-key.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+
             localStorage.setItem("userEmail", form.email);
 
-            // 4. Send email, password, publicKey to backend
+            // 4. Send public key and user info to backend
             const res = await fetch('https://securechat-n501.onrender.com/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,8 +60,8 @@ function Register() {
 
             const data = await res.json();
             if (res.ok) {
-                setMessage('Registered successfully!');
-                navigate('/send-message'); // ✅ redirect here
+                setMessage('Registered successfully! Your private key has been downloaded.');
+                navigate('/send-message');
             } else {
                 setMessage(data.msg || data.error || 'Something went wrong');
             }
