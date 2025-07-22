@@ -1,37 +1,16 @@
-// updated by chatgpt
 import React, { useState, useEffect } from 'react';
 
 function Inbox() {
     const [email, setEmail] = useState('');
     const [inbox, setInbox] = useState([]);
     const [privateKey, setPrivateKey] = useState(null);
+    const [keyInput, setKeyInput] = useState('');
     const [decryptedMessages, setDecryptedMessages] = useState({});
 
-    // Load privateKey from localStorage and import
-    const loadPrivateKey = async () => {
-        try {
-            const keyBase64 = localStorage.getItem('privateKey');
-            if (!keyBase64) return;
-
-            const keyBuffer = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
-            const importedKey = await window.crypto.subtle.importKey(
-                'pkcs8',
-                keyBuffer,
-                {
-                    name: 'RSA-OAEP',
-                    hash: 'SHA-256',
-                },
-                true,
-                ['decrypt']
-            );
-            setPrivateKey(importedKey);
-        } catch (err) {
-            console.error('Failed to load private key:', err);
-        }
-    };
-
-    // Load inbox messages
+    // Load inbox messages only when both email and privateKey are available
     const loadInbox = async () => {
+        if (!email || !privateKey) return;
+
         try {
             const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email}`);
             const data = await res.json();
@@ -65,33 +44,64 @@ function Inbox() {
         setDecryptedMessages(decrypted);
     };
 
-    // Initial load
+    // Load inbox + decrypt when both conditions are satisfied
     useEffect(() => {
-        loadPrivateKey();
-    }, []);
+        if (email && privateKey) {
+            loadInbox();
+        }
+    }, [email, privateKey]);
 
-    useEffect(() => {
-        if (email) loadInbox();
-    }, [email]);
-
+    // Run decryption when inbox is updated
     useEffect(() => {
         if (privateKey && inbox.length > 0) {
             decryptMessages();
         }
-    }, [privateKey, inbox]);
-
+    }, [inbox]);
 
     return (
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
             <h2>📥 Encrypted Inbox</h2>
+
+            {/* Email input */}
             <input
                 type="email"
                 placeholder="Your Email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+                style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
             />
+
+            {/* Paste Private Key UI */}
+            {!privateKey && (
+                <div>
+                    <textarea
+                        placeholder="Paste your base64 private key here"
+                        value={keyInput}
+                        onChange={e => setKeyInput(e.target.value)}
+                        style={{ width: '100%', height: '100px', marginBottom: '10px' }}
+                    />
+                    <button onClick={async () => {
+                        try {
+                            const keyBuffer = Uint8Array.from(atob(keyInput), c => c.charCodeAt(0));
+                            const importedKey = await window.crypto.subtle.importKey(
+                                'pkcs8',
+                                keyBuffer,
+                                { name: 'RSA-OAEP', hash: 'SHA-256' },
+                                true,
+                                ['decrypt']
+                            );
+                            setPrivateKey(importedKey);
+                        } catch (err) {
+                            alert('Invalid private key format');
+                        }
+                    }}>Import Private Key</button>
+                </div>
+            )}
+
+            <hr />
+
+            {/* Inbox */}
             {inbox.length === 0 ? (
                 <p>No messages yet.</p>
             ) : (

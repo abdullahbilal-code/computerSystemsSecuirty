@@ -18,7 +18,10 @@ function Login() {
             const res = await fetch('https://securechat-n501.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
+                body: JSON.stringify({
+                    email: form.email.toLowerCase(),
+                    password: form.password
+                }),
             });
 
             const data = await res.json();
@@ -26,7 +29,7 @@ function Login() {
                 setMessage(data.msg);
                 setPublicKey(data.publicKey);
 
-                localStorage.setItem('userEmail', form.email);
+                localStorage.setItem("userEmail", form.email.toLowerCase());
             } else {
                 setMessage(data.msg || data.error || 'Login failed');
             }
