@@ -33,7 +33,7 @@ function Inbox() {
     // Load inbox messages
     const loadInbox = async () => {
         try {
-            const res = await fetch(`http://localhost:5000/api/message/inbox/${email}`);
+            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email}`);
             const data = await res.json();
             setInbox(data);
         } catch (err) {

@@ -12,7 +12,7 @@ function Chat() {
 
         try {
             // 1. Fetch recipient's publicKey
-            const userRes = await fetch(`http://localhost:5000/api/auth/user/${encodeURIComponent(toEmail)}`)
+            const userRes = await fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail)}`)
             const userData = await userRes.json();
 
             if (!userRes.ok || !userData.publicKey) {
@@ -44,7 +44,7 @@ function Chat() {
             const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)));
 
             // 4. Send encrypted message to backend
-            const res = await fetch('http://localhost:5000/api/message/send', {
+            const res = await fetch('https://securechat-n501.onrender.com/api/message/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ from: fromEmail, to: toEmail, message: encryptedBase64 })
