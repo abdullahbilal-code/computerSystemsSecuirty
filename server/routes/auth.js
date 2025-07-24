@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
             email,
             password: hashedPassword,
             publicKey,
-            privateKey: "frontend-only", // optional placeholder
+            privateKey: "frontend-only",
         });
 
         await newUser.save();

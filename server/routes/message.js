@@ -8,7 +8,7 @@ const User = require('../models/User');
 router.post('/send', async (req, res) => {
     try {
         const { from, to, message } = req.body;
-        const receiver = await User.findOne({ email: to });
+        const receiver = await User.findOne({ email: to.toLowerCase() });
         const newMessage = new Message({ from: from.toLowerCase(), to: to.toLowerCase(), content: message });
         if (!receiver) return res.status(404).json({ msg: 'Recipient not found' });
         await newMessage.save();
