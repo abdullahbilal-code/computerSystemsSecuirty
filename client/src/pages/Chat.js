@@ -12,7 +12,7 @@ function Chat() {
 
         try {
             // 1. Fetch recipient's publicKey
-            const userRes = await fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail)}`)
+            const userRes = await fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail.toLocaleLowerCase())}`)
             const userData = await userRes.json();
 
             if (!userRes.ok || !userData.publicKey) {
