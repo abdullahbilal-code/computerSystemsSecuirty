@@ -1,11 +1,11 @@
-# Secure Chat App – End-to-End Encrypted Messaging
+# Secure Chat App End-to-End Encrypted 
 
 This project is built for our Computer Systems Security module.
 
 It is a secure communication web app that allows two users to send and receive end-to-end encrypted messages using RSA public/private key pairs. Keys are generated in the browser and only public keys are shared with the backend.
 
 
-🛠️ Tech Stack
+Tech Stack
 
 - Frontend: React (create-react-app)
 - Backend: Express.js + Node.js
@@ -13,7 +13,7 @@ It is a secure communication web app that allows two users to send and receive e
 - Encryption: Web Crypto API (RSA-OAEP with SHA-256)
 
 
-✅ Features
+Features
 
 - User registration & login
 - RSA key pair generation in the browser
@@ -33,9 +33,9 @@ How It Works
 5. Inbox decrypts the message using the private key stored in `localStorage`.
 
 
-How to Run
+How to Run / Start Project: 
 
 Backend
 cd server
-npm install
+npm install if not installed already
 npm start
