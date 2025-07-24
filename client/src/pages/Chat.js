@@ -5,22 +5,29 @@ function Chat() {
     const [toEmail, setToEmail] = useState('');
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     const handleSend = async e => {
         e.preventDefault();
+
+        if (fromEmail.toLowerCase() === toEmail.toLowerCase()) {
+            setStatus('You cannot send a message to yourself');
+            return;
+        }
+
         setStatus('Encrypting...');
+        setIsSending(true);
 
         try {
-            // 1. Fetch recipient's publicKey
-            const userRes = await fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail.toLocaleLowerCase())}`)
+            const userRes = await fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail.toLowerCase())}`);
             const userData = await userRes.json();
 
             if (!userRes.ok || !userData.publicKey) {
                 setStatus('Recipient not found or has no public key');
+                setIsSending(false);
                 return;
             }
 
-            // 2. Import public key
             const publicKeyRaw = Uint8Array.from(atob(userData.publicKey), c => c.charCodeAt(0));
             const importedKey = await window.crypto.subtle.importKey(
                 'spki',
@@ -33,7 +40,6 @@ function Chat() {
                 ['encrypt']
             );
 
-            // 3. Encrypt the message
             const encodedMsg = new TextEncoder().encode(message);
             const encryptedBuffer = await window.crypto.subtle.encrypt(
                 { name: 'RSA-OAEP' },
@@ -43,11 +49,14 @@ function Chat() {
 
             const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)));
 
-            // 4. Send encrypted message to backend
             const res = await fetch('https://securechat-n501.onrender.com/api/message/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ from: fromEmail.toLocaleLowerCase(), to: toEmail.toLocaleLowerCase(), message: encryptedBase64 })
+                body: JSON.stringify({
+                    from: fromEmail.toLowerCase(),
+                    to: toEmail.toLowerCase(),
+                    message: encryptedBase64,
+                }),
             });
 
             const data = await res.json();
@@ -56,6 +65,8 @@ function Chat() {
         } catch (err) {
             console.error(err);
             setStatus('Encryption or sending failed');
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -88,10 +99,21 @@ function Chat() {
                     rows={4}
                     style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
                 />
-                <button type="submit" style={{ padding: '10px 20px' }}>Send</button>
+                <button type="submit" style={{ padding: '10px 20px' }} disabled={isSending}>
+                    {isSending ? 'Sending...' : 'Send'}
+                </button>
             </form>
-
-            <p>{status}</p>
+            <p>
+                {status && (
+                    <p
+                        style={{
+                            color: status.includes('You cannot send a message to yourself') ? 'red' : 'green',
+                        }}
+                    >
+                        {status}
+                    </p>
+                )}
+            </p>
         </div>
     );
 }

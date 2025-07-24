@@ -12,7 +12,7 @@ function Inbox() {
         if (!email || !privateKey) return;
 
         try {
-            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email.toLocaleLowerCase()}`);
+            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email.toLowerCase()}`);
             const data = await res.json();
             setInbox(data);
         } catch (err) {

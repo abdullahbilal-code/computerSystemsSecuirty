@@ -23,7 +23,7 @@ router.post('/send', async (req, res) => {
 router.get('/inbox/:email', async (req, res) => {
     try {
         const { email } = req.params;
-        const messages = await Message.find({ to: email.toLocaleLowerCase() }).sort({ timestamp: -1 });
+        const messages = await Message.find({ to: email.toLowerCase() }).sort({ timestamp: -1 });
         res.status(200).json(messages);
     } catch (err) {
         res.status(500).json({ error: err.message });
