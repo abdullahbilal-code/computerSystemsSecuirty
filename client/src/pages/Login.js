@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
     const [form, setForm] = useState({ email: '', password: '' });
     const [message, setMessage] = useState('');
     const [publicKey, setPublicKey] = useState('');
+    const navigate = useNavigate();
 
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,6 +32,7 @@ function Login() {
                 setPublicKey(data.publicKey);
 
                 localStorage.setItem("userEmail", form.email.toLowerCase());
+                navigate('/send-message');
             } else {
                 setMessage(data.msg || data.error || 'Login failed');
             }

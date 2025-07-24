@@ -47,7 +47,7 @@ function Chat() {
             const res = await fetch('https://securechat-n501.onrender.com/api/message/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ from: fromEmail, to: toEmail, message: encryptedBase64 })
+                body: JSON.stringify({ from: fromEmail.toLocaleLowerCase(), to: toEmail.toLocaleLowerCase(), message: encryptedBase64 })
             });
 
             const data = await res.json();
