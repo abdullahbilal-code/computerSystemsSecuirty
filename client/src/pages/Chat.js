@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function Chat() {
     const [fromEmail, setFromEmail] = useState('');
@@ -6,6 +6,13 @@ function Chat() {
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState('');
     const [isSending, setIsSending] = useState(false);
+
+    useEffect(() => {
+        const email = localStorage.getItem("userEmail");
+        if (email) {
+            setFromEmail(email);
+        }
+    }, []);
 
     const handleSend = async e => {
         e.preventDefault();
@@ -79,8 +86,7 @@ function Chat() {
                     type="email"
                     placeholder="Your Email"
                     value={fromEmail}
-                    onChange={e => setFromEmail(e.target.value)}
-                    required
+                    disabled={fromEmail}
                     style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
                 />
                 <input

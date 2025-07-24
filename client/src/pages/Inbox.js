@@ -6,10 +6,21 @@ function Inbox() {
     const [privateKey, setPrivateKey] = useState(null);
     const [keyInput, setKeyInput] = useState('');
     const [decryptedMessages, setDecryptedMessages] = useState({});
+    const [loadingInbox, setLoadingInbox] = useState(false);
+    const [loadingDecrypt, setLoadingDecrypt] = useState(false);
+
+    useEffect(() => {
+        const email = localStorage.getItem("userEmail");
+        if (email) {
+            setEmail(email);
+        }
+    }, []);
 
     // Load inbox messages only when both email and privateKey are available
     const loadInbox = async () => {
         if (!email || !privateKey) return;
+
+        setLoadingInbox(true);
 
         try {
             const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email.toLowerCase()}`);
@@ -17,12 +28,16 @@ function Inbox() {
             setInbox(data);
         } catch (err) {
             console.error('Failed to load inbox:', err);
+        } finally {
+            setLoadingInbox(false);
         }
     };
 
     // Decrypt all messages
     const decryptMessages = async () => {
         if (!privateKey || inbox.length === 0) return;
+
+        setLoadingDecrypt(true);
 
         const decrypted = {};
 
@@ -42,6 +57,7 @@ function Inbox() {
         }
 
         setDecryptedMessages(decrypted);
+        setLoadingDecrypt(false);
     };
 
     // Load inbox + decrypt when both conditions are satisfied
@@ -60,14 +76,14 @@ function Inbox() {
 
     return (
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
-            <h2>📥 Encrypted Inbox</h2>
+            <h2>Encrypted Inbox</h2>
 
             {/* Email input */}
             <input
                 type="email"
                 placeholder="Your Email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                disabled={email}
                 required
                 style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
             />
@@ -100,9 +116,10 @@ function Inbox() {
             )}
 
             <hr />
+            {loadingInbox && <p>Loading inbox...</p>}
 
             {/* Inbox */}
-            {inbox.length === 0 ? (
+            {inbox.length === 0 && !loadingInbox ? (
                 <p>No messages yet.</p>
             ) : (
                 inbox.map((msg, i) => (
@@ -118,6 +135,7 @@ function Inbox() {
                     </div>
                 ))
             )}
+            {loadingDecrypt && <p>Decrypting messages...</p>}
         </div>
     );
 }
