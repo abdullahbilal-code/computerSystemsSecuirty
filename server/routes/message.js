@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const crypto = require('crypto');
 const Message = require('../models/Message');
 const User = require('../models/User');
 
@@ -23,7 +22,12 @@ router.post('/send', async (req, res) => {
 router.get('/inbox/:email', async (req, res) => {
     try {
         const { email } = req.params;
-        const messages = await Message.find({ to: email.toLowerCase() }).sort({ timestamp: -1 });
+        const messages = await Message.find({
+            $or: [
+                { to: email.toLowerCase() },
+                { from: email.toLowerCase() }
+            ]
+        }).sort({ timestamp: -1 });
         res.status(200).json(messages);
     } catch (err) {
         res.status(500).json({ error: err.message });
