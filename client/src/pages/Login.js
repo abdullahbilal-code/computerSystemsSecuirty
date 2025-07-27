@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+function Login({ onLogin }) {
     const [form, setForm] = useState({ email: '', password: '' });
     const [message, setMessage] = useState('');
     const [publicKey, setPublicKey] = useState('');
@@ -20,23 +20,16 @@ function Login() {
             const res = await fetch('https://securechat-n501.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: form.email.toLowerCase(),
-                    password: form.password
-                }),
+                body: JSON.stringify(form),
             });
 
             const data = await res.json();
             if (res.ok) {
                 setMessage(data.msg);
                 setPublicKey(data.publicKey);
-
-                localStorage.setItem("userEmail", form.email.toLowerCase());
-
-                setTimeout(() => {
-                    navigate('/send-message');
-                }, 1500);
-
+                localStorage.setItem('userEmail', form.email.toLowerCase());
+                onLogin();
+                navigate('/send-message');
             } else {
                 setMessage(data.msg || data.error || 'Login failed');
             }
@@ -49,35 +42,15 @@ function Login() {
         <div className="register-container">
             <h2 className="register-heading">Login</h2>
             <form onSubmit={handleSubmit}>
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    onChange={handleChange}
-                    required
-                    className="register-input"
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    onChange={handleChange}
-                    required
-                    className="register-input"
-                />
+                <input type="email" name="email" placeholder="Email" onChange={handleChange} required className="register-input" />
+                <input type="password" name="password" placeholder="Password" onChange={handleChange} required className="register-input" />
                 <button type="submit" className="register-button">Login</button>
             </form>
             {message && <p className="register-message">{message}</p>}
-
             {publicKey && (
                 <div style={{ marginTop: '20px' }}>
                     <h4>Your Public Key:</h4>
-                    <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-                        {publicKey}
-                    </pre>
-                    <p style={{ fontSize: '14px', color: 'gray' }}>
-                        Please keep your private key ready. You'll need to paste or upload it on the Inbox page to decrypt messages.
-                    </p>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>{publicKey}</pre>
                 </div>
             )}
         </div>

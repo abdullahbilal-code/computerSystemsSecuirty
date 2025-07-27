@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function Chat() {
     const [fromEmail, setFromEmail] = useState('');
@@ -92,16 +92,15 @@ function Chat() {
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
-            <h2>Encrypted Chat</h2>
-
-            <form onSubmit={handleSend} style={{ marginBottom: '20px' }}>
+        <div className="register-container">
+            <h2 className="register-heading">Encrypted Chat</h2>
+            <form onSubmit={handleSend}>
                 <input
                     type="email"
                     placeholder="Your Email"
                     value={fromEmail}
-                    disabled={fromEmail}
-                    style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                    disabled
+                    className="register-input"
                 />
                 <input
                     type="email"
@@ -109,7 +108,7 @@ function Chat() {
                     value={toEmail}
                     onChange={e => setToEmail(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                    className="register-input"
                 />
                 <textarea
                     placeholder="Your Message"
@@ -117,17 +116,24 @@ function Chat() {
                     onChange={e => setMessage(e.target.value)}
                     required
                     rows={4}
-                    style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                    className="register-input"
+                    style={{ resize: 'vertical' }}
                 />
-                <button type="submit" style={{ padding: '10px 20px' }} disabled={isSending}>
+                <button type="submit" className="register-button" disabled={isSending}>
                     {isSending ? 'Sending...' : 'Send'}
                 </button>
             </form>
             {status && (
-                <p style={{ color: status.includes('cannot') ? 'red' : 'green' }}>{status}</p>
+                <p
+                    className="register-message"
+                    style={{ color: status.includes('cannot') ? 'red' : 'green' }}
+                >
+                    {status}
+                </p>
             )}
         </div>
     );
+
 }
 
 export default Chat;

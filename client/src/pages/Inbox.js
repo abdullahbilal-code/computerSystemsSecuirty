@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 function Inbox() {
     const [email, setEmail] = useState('');
@@ -82,15 +82,15 @@ function Inbox() {
     }, [inbox]);
 
     return (
-        <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
-            <h2>Encrypted Inbox</h2>
+        <div className="register-container">
+            <h2 className="register-heading">📥 Encrypted Inbox</h2>
 
             <input
                 type="email"
                 placeholder="Your Email"
                 value={email}
-                disabled={email}
-                style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                disabled
+                className="register-input"
             />
 
             {!privateKey && (
@@ -99,7 +99,8 @@ function Inbox() {
                         placeholder="Paste your base64 private key here"
                         value={keyInput}
                         onChange={e => setKeyInput(e.target.value)}
-                        style={{ width: '100%', height: '100px', marginBottom: '10px' }}
+                        className="register-input"
+                        style={{ height: '100px', resize: 'vertical' }}
                     />
                     <button onClick={async () => {
                         try {
@@ -115,29 +116,29 @@ function Inbox() {
                         } catch (err) {
                             alert('Invalid private key format');
                         }
-                    }}>Import Private Key</button>
+                    }} className="register-button">Import Private Key</button>
                 </div>
             )}
 
             <hr />
             {loadingInbox && <p>Loading inbox...</p>}
+            {loadingDecrypt && <p>Decrypting messages...</p>}
 
             {inbox.length === 0 && !loadingInbox ? (
                 <p>No messages yet.</p>
             ) : (
                 inbox.map((msg, i) => (
-                    <div key={i} style={{ marginBottom: '10px', border: '1px solid #ccc', padding: '10px' }}>
+                    <div key={i} className="register-input" style={{ marginBottom: '15px' }}>
                         <strong>From:</strong> {msg.from}<br />
                         <strong>To:</strong> {msg.to}<br />
                         <strong>Decrypted:</strong>
-                        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', marginTop: '5px' }}>
                             {decryptedMessages[msg._id] || '[Decrypting...]'}
                         </pre>
                         <small>{new Date(msg.timestamp).toLocaleString()}</small>
                     </div>
                 ))
             )}
-            {loadingDecrypt && <p>Decrypting messages...</p>}
         </div>
     );
 }

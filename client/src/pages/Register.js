@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 
@@ -16,7 +16,6 @@ function Register() {
         setMessage('Generating keys, please wait...');
 
         try {
-            // 1. Generate RSA key pair
             const keyPair = await window.crypto.subtle.generateKey(
                 {
                     name: "RSA-OAEP",
@@ -28,15 +27,12 @@ function Register() {
                 ["encrypt", "decrypt"]
             );
 
-            // 2. Export public key
             const publicKey = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
             const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
 
-            // 3. Export private key and offer it as a download
             const privateKey = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
             const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
 
-            // 🟢 Download key as a text file
             const blob = new Blob([privateKeyBase64], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -47,7 +43,6 @@ function Register() {
 
             localStorage.setItem("userEmail", form.email);
 
-            // 4. Send email, password, publicKey to backend
             const res = await fetch('https://securechat-n501.onrender.com/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
