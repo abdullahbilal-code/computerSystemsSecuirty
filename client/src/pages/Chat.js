@@ -26,35 +26,48 @@ function Chat() {
         setIsSending(true);
 
         try {
-            const userRes = await fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail.toLowerCase())}`);
-            const userData = await userRes.json();
+            const [receiverRes, senderRes] = await Promise.all([
+                fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(toEmail.toLowerCase())}`),
+                fetch(`https://securechat-n501.onrender.com/api/auth/user/${encodeURIComponent(fromEmail.toLowerCase())}`)
+            ]);
+            const receiverData = await receiverRes.json();
+            const senderData = await senderRes.json();
 
-            if (!userRes.ok || !userData.publicKey) {
+            if (!receiverRes.ok || !receiverData.publicKey) {
                 setStatus('Recipient not found or has no public key');
                 setIsSending(false);
                 return;
             }
 
-            const publicKeyRaw = Uint8Array.from(atob(userData.publicKey), c => c.charCodeAt(0));
-            const importedKey = await window.crypto.subtle.importKey(
-                'spki',
-                publicKeyRaw,
-                {
-                    name: 'RSA-OAEP',
-                    hash: 'SHA-256',
-                },
-                true,
-                ['encrypt']
-            );
+            if (!senderRes.ok || !senderData.publicKey) {
+                setStatus('Your account does not have a public key');
+                setIsSending(false);
+                return;
+            }
+
+            const importPublicKey = async (keyBase64) => {
+                const raw = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
+                return await window.crypto.subtle.importKey(
+                    'spki',
+                    raw,
+                    { name: 'RSA-OAEP', hash: 'SHA-256' },
+                    true,
+                    ['encrypt']
+                );
+            };
+
+            const receiverKey = await importPublicKey(receiverData.publicKey);
+            const senderKey = await importPublicKey(senderData.publicKey);
 
             const encodedMsg = new TextEncoder().encode(message);
-            const encryptedBuffer = await window.crypto.subtle.encrypt(
-                { name: 'RSA-OAEP' },
-                importedKey,
-                encodedMsg
-            );
 
-            const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)));
+            const [encryptedForReceiver, encryptedForSender] = await Promise.all([
+                window.crypto.subtle.encrypt({ name: 'RSA-OAEP' }, receiverKey, encodedMsg),
+                window.crypto.subtle.encrypt({ name: 'RSA-OAEP' }, senderKey, encodedMsg)
+            ]);
+
+            const base64Receiver = btoa(String.fromCharCode(...new Uint8Array(encryptedForReceiver)));
+            const base64Sender = btoa(String.fromCharCode(...new Uint8Array(encryptedForSender)));
 
             const res = await fetch('https://securechat-n501.onrender.com/api/message/send', {
                 method: 'POST',
@@ -62,7 +75,8 @@ function Chat() {
                 body: JSON.stringify({
                     from: fromEmail.toLowerCase(),
                     to: toEmail.toLowerCase(),
-                    message: encryptedBase64,
+                    contentForReceiver: base64Receiver,
+                    contentForSender: base64Sender,
                 }),
             });
 
@@ -109,17 +123,9 @@ function Chat() {
                     {isSending ? 'Sending...' : 'Send'}
                 </button>
             </form>
-            <p>
-                {status && (
-                    <p
-                        style={{
-                            color: status.includes('You cannot send a message to yourself') ? 'red' : 'green',
-                        }}
-                    >
-                        {status}
-                    </p>
-                )}
-            </p>
+            {status && (
+                <p style={{ color: status.includes('cannot') ? 'red' : 'green' }}>{status}</p>
+            )}
         </div>
     );
 }

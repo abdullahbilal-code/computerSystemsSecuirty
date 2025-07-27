@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const MessageSchema = new mongoose.Schema({
-    from: { type: String, required: true }, // sender's email
-    to: { type: String, required: true },   // receiver's email
-    content: { type: String, required: true }, // encrypted message
+    from: { type: String, required: true },
+    to: { type: String, required: true },
+    contentForReceiver: { type: String, required: true },
+    contentForSender: { type: String, required: true },
     timestamp: { type: Date, default: Date.now }
 });
 

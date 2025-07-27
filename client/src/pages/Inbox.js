@@ -10,20 +10,18 @@ function Inbox() {
     const [loadingDecrypt, setLoadingDecrypt] = useState(false);
 
     useEffect(() => {
-        const email = localStorage.getItem("userEmail");
-        if (email) {
-            setEmail(email);
+        const storedEmail = localStorage.getItem("userEmail");
+        if (storedEmail) {
+            setEmail(storedEmail);
         }
     }, []);
 
-    // Load inbox messages only when both email and privateKey are available
     const loadInbox = async () => {
         if (!email || !privateKey) return;
 
         setLoadingInbox(true);
-
         try {
-            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email.toLowerCase()}`);
+            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email}`);
             const data = await res.json();
             setInbox(data);
         } catch (err) {
@@ -43,7 +41,18 @@ function Inbox() {
 
         for (const msg of inbox) {
             try {
-                const encryptedBuffer = Uint8Array.from(atob(msg.content), c => c.charCodeAt(0));
+                let encryptedContent;
+
+                if (msg.to.toLowerCase() === email.toLowerCase()) {
+                    encryptedContent = msg.contentForReceiver;
+                } else if (msg.from.toLowerCase() === email.toLowerCase()) {
+                    encryptedContent = msg.contentForSender;
+                } else {
+                    decrypted[msg._id] = '[Not authorized to decrypt]';
+                    continue;
+                }
+
+                const encryptedBuffer = Uint8Array.from(atob(encryptedContent), c => c.charCodeAt(0));
                 const decryptedBuffer = await window.crypto.subtle.decrypt(
                     { name: 'RSA-OAEP' },
                     privateKey,
@@ -60,14 +69,12 @@ function Inbox() {
         setLoadingDecrypt(false);
     };
 
-    // Load inbox + decrypt when both conditions are satisfied
     useEffect(() => {
         if (email && privateKey) {
             loadInbox();
         }
     }, [email, privateKey]);
 
-    // Run decryption when inbox is updated
     useEffect(() => {
         if (privateKey && inbox.length > 0) {
             decryptMessages();
@@ -78,17 +85,14 @@ function Inbox() {
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
             <h2>Encrypted Inbox</h2>
 
-            {/* Email input */}
             <input
                 type="email"
                 placeholder="Your Email"
                 value={email}
                 disabled={email}
-                required
                 style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
             />
 
-            {/* Paste Private Key UI */}
             {!privateKey && (
                 <div>
                     <textarea
@@ -118,15 +122,13 @@ function Inbox() {
             <hr />
             {loadingInbox && <p>Loading inbox...</p>}
 
-            {/* Inbox */}
             {inbox.length === 0 && !loadingInbox ? (
                 <p>No messages yet.</p>
             ) : (
                 inbox.map((msg, i) => (
                     <div key={i} style={{ marginBottom: '10px', border: '1px solid #ccc', padding: '10px' }}>
                         <strong>From:</strong> {msg.from}<br />
-                        <strong>Encrypted:</strong>
-                        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>{msg.content}</pre>
+                        <strong>To:</strong> {msg.to}<br />
                         <strong>Decrypted:</strong>
                         <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                             {decryptedMessages[msg._id] || '[Decrypting...]'}

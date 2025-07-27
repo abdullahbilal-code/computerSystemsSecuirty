@@ -6,14 +6,27 @@ const User = require('../models/User');
 // Send Message Route
 router.post('/send', async (req, res) => {
     try {
-        const { from, to, message } = req.body;
+        const { from, to, contentForReceiver, contentForSender } = req.body;
+
+        if (!contentForReceiver || !contentForSender) {
+            return res.status(400).json({ msg: 'Both encrypted contents are required' });
+        }
+
         const receiver = await User.findOne({ email: to.toLowerCase() });
-        const newMessage = new Message({ from: from.toLowerCase(), to: to.toLowerCase(), content: message });
-        if (!receiver) return res.status(404).json({ msg: 'Recipient not found' });
+        if (!receiver) {
+            return res.status(404).json({ msg: 'Recipient not found' });
+        }
+        const newMessage = new Message({
+            from: from.toLowerCase(),
+            to: to.toLowerCase(),
+            contentForReceiver,
+            contentForSender
+        });
         await newMessage.save();
 
         res.status(200).json({ msg: 'Message sent successfully' });
     } catch (err) {
+        console.error('Send message error:', err);
         res.status(500).json({ error: err.message });
     }
 });
