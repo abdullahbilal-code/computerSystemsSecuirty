@@ -31,7 +31,6 @@ function Inbox() {
         }
     };
 
-    // Decrypt all messages
     const decryptMessages = async () => {
         if (!privateKey || inbox.length === 0) return;
 
@@ -83,7 +82,7 @@ function Inbox() {
 
     return (
         <div className="register-container">
-            <h2 className="register-heading">📥 Encrypted Inbox</h2>
+            <h2 className="register-heading">Encrypted Inbox</h2>
 
             <input
                 type="email"
@@ -102,21 +101,26 @@ function Inbox() {
                         className="register-input"
                         style={{ height: '100px', resize: 'vertical' }}
                     />
-                    <button onClick={async () => {
-                        try {
-                            const keyBuffer = Uint8Array.from(atob(keyInput), c => c.charCodeAt(0));
-                            const importedKey = await window.crypto.subtle.importKey(
-                                'pkcs8',
-                                keyBuffer,
-                                { name: 'RSA-OAEP', hash: 'SHA-256' },
-                                true,
-                                ['decrypt']
-                            );
-                            setPrivateKey(importedKey);
-                        } catch (err) {
-                            alert('Invalid private key format');
-                        }
-                    }} className="register-button">Import Private Key</button>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const keyBuffer = Uint8Array.from(atob(keyInput), c => c.charCodeAt(0));
+                                const importedKey = await window.crypto.subtle.importKey(
+                                    'pkcs8',
+                                    keyBuffer,
+                                    { name: 'RSA-OAEP', hash: 'SHA-256' },
+                                    true,
+                                    ['decrypt']
+                                );
+                                setPrivateKey(importedKey);
+                            } catch (err) {
+                                alert('Invalid private key format');
+                            }
+                        }}
+                        className="register-button"
+                    >
+                        Import Private Key
+                    </button>
                 </div>
             )}
 
@@ -127,17 +131,47 @@ function Inbox() {
             {inbox.length === 0 && !loadingInbox ? (
                 <p>No messages yet.</p>
             ) : (
-                inbox.map((msg, i) => (
-                    <div key={i} className="register-input" style={{ marginBottom: '15px' }}>
-                        <strong>From:</strong> {msg.from}<br />
-                        <strong>To:</strong> {msg.to}<br />
-                        <strong>Decrypted:</strong>
-                        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', marginTop: '5px' }}>
-                            {decryptedMessages[msg._id] || '[Decrypting...]'}
-                        </pre>
-                        <small>{new Date(msg.timestamp).toLocaleString()}</small>
-                    </div>
-                ))
+                inbox.map((msg, i) => {
+                    const isSentByMe = msg.from.toLowerCase() === email.toLowerCase();
+                    return (
+                        <div
+                            key={i}
+                            style={{
+                                display: 'flex',
+                                justifyContent: isSentByMe ? 'flex-end' : 'flex-start',
+                                marginBottom: '12px',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    backgroundColor: isSentByMe ? '#e6f7ff' : '#f0fff4',
+                                    padding: '10px 14px',
+                                    borderRadius: '10px',
+                                    maxWidth: '80%',
+                                    border: '1px solid #ccc',
+                                    textAlign: 'left',
+                                }}
+                            >
+                                <strong>{isSentByMe ? 'To:' : 'From:'}</strong> {isSentByMe ? msg.to : msg.from}
+                                <br />
+                                <br />
+                                <strong>Message:</strong>
+                                <pre
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        wordWrap: 'break-word',
+                                        marginTop: '5px',
+                                        fontSize: '14px',
+                                    }}
+                                >
+                                    {decryptedMessages[msg._id] || '[Decrypting...]'}
+                                </pre>
+                                <small style={{ color: '#888' }}>{new Date(msg.timestamp).toLocaleString()}</small>
+                            </div>
+                        </div>
+                    );
+                }
+                )
             )}
         </div>
     );
