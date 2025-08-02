@@ -11,9 +11,7 @@ function Inbox() {
 
     useEffect(() => {
         const storedEmail = localStorage.getItem("userEmail");
-        if (storedEmail) {
-            setEmail(storedEmail);
-        }
+        if (storedEmail) setEmail(storedEmail);
     }, []);
 
     const loadInbox = async () => {
@@ -35,27 +33,42 @@ function Inbox() {
         if (!privateKey || inbox.length === 0) return;
 
         setLoadingDecrypt(true);
-
         const decrypted = {};
 
         for (const msg of inbox) {
             try {
-                let encryptedContent;
+                const isReceiver = msg.to.toLowerCase() === email.toLowerCase();
+                const encryptedAESKeyBase64 = isReceiver ? msg.aesKeyForReceiver : msg.aesKeyForSender;
+                const encryptedMessageBase64 = msg.encryptedMessage;
+                const ivBase64 = msg.iv;
 
-                if (msg.to.toLowerCase() === email.toLowerCase()) {
-                    encryptedContent = msg.contentForReceiver;
-                } else if (msg.from.toLowerCase() === email.toLowerCase()) {
-                    encryptedContent = msg.contentForSender;
-                } else {
-                    decrypted[msg._id] = '[Not authorized to decrypt]';
+                if (!encryptedAESKeyBase64 || !encryptedMessageBase64 || !ivBase64) {
+                    decrypted[msg._id] = '[Missing encrypted content]';
                     continue;
                 }
 
-                const encryptedBuffer = Uint8Array.from(atob(encryptedContent), c => c.charCodeAt(0));
-                const decryptedBuffer = await window.crypto.subtle.decrypt(
-                    { name: 'RSA-OAEP' },
+                const encryptedAESKey = Uint8Array.from(atob(encryptedAESKeyBase64), c => c.charCodeAt(0));
+                const encryptedMessage = Uint8Array.from(atob(encryptedMessageBase64), c => c.charCodeAt(0));
+                const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+
+                const rawAesKey = await crypto.subtle.decrypt(
+                    { name: "RSA-OAEP" },
                     privateKey,
-                    encryptedBuffer
+                    encryptedAESKey
+                );
+
+                const aesKey = await crypto.subtle.importKey(
+                    "raw",
+                    rawAesKey,
+                    { name: "AES-GCM" },
+                    false,
+                    ["decrypt"]
+                );
+
+                const decryptedBuffer = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv },
+                    aesKey,
+                    encryptedMessage
                 );
                 const decryptedText = new TextDecoder().decode(decryptedBuffer);
                 decrypted[msg._id] = decryptedText;
@@ -170,8 +183,7 @@ function Inbox() {
                             </div>
                         </div>
                     );
-                }
-                )
+                })
             )}
         </div>
     );

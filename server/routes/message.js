@@ -6,10 +6,17 @@ const User = require('../models/User');
 // Send Message Route
 router.post('/send', async (req, res) => {
     try {
-        const { from, to, contentForReceiver, contentForSender } = req.body;
+        const {
+            from,
+            to,
+            encryptedMessage,
+            aesKeyForReceiver,
+            aesKeyForSender,
+            iv
+        } = req.body;
 
-        if (!contentForReceiver || !contentForSender) {
-            return res.status(400).json({ msg: 'Both encrypted contents are required' });
+        if (!from || !to || !encryptedMessage || !aesKeyForReceiver || !aesKeyForSender || !iv) {
+            return res.status(400).json({ msg: 'Missing required fields' });
         }
 
         const receiver = await User.findOne({ email: to.toLowerCase() });
@@ -19,8 +26,10 @@ router.post('/send', async (req, res) => {
         const newMessage = new Message({
             from: from.toLowerCase(),
             to: to.toLowerCase(),
-            contentForReceiver,
-            contentForSender
+            encryptedMessage,
+            aesKeyForReceiver,
+            aesKeyForSender,
+            iv
         });
         await newMessage.save();
 
@@ -40,7 +49,7 @@ router.get('/inbox/:email', async (req, res) => {
                 { to: email.toLowerCase() },
                 { from: email.toLowerCase() }
             ]
-        }).sort({ timestamp: -1 });
+        })
         res.status(200).json(messages);
     } catch (err) {
         res.status(500).json({ error: err.message });

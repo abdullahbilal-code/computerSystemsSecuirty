@@ -9,21 +9,18 @@ function Chat() {
 
     useEffect(() => {
         const email = localStorage.getItem("userEmail");
-        if (email) {
-            setFromEmail(email);
-        }
+        if (email) setFromEmail(email);
     }, []);
 
     const handleSend = async e => {
         e.preventDefault();
-
         if (fromEmail.toLowerCase() === toEmail.toLowerCase()) {
             setStatus('You cannot send a message to yourself');
             return;
         }
 
-        setStatus('Encrypting...');
         setIsSending(true);
+        setStatus('Encrypting...');
 
         try {
             const [receiverRes, senderRes] = await Promise.all([
@@ -33,21 +30,30 @@ function Chat() {
             const receiverData = await receiverRes.json();
             const senderData = await senderRes.json();
 
-            if (!receiverRes.ok || !receiverData.publicKey) {
-                setStatus('Recipient not found or has no public key');
-                setIsSending(false);
+            if (!receiverData.publicKey || !senderData.publicKey) {
+                setStatus('Missing public key(s)');
                 return;
             }
 
-            if (!senderRes.ok || !senderData.publicKey) {
-                setStatus('Your account does not have a public key');
-                setIsSending(false);
-                return;
-            }
+            const aesKey = await crypto.subtle.generateKey(
+                { name: "AES-GCM", length: 256 },
+                true,
+                ["encrypt", "decrypt"]
+            );
 
-            const importPublicKey = async (keyBase64) => {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encodedMsg = new TextEncoder().encode(message);
+            const encryptedMessageBuffer = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv },
+                aesKey,
+                encodedMsg
+            );
+            const encryptedMessage = btoa(String.fromCharCode(...new Uint8Array(encryptedMessageBuffer)));
+            const ivBase64 = btoa(String.fromCharCode(...iv));
+            const rawAesKey = await crypto.subtle.exportKey("raw", aesKey);
+            const importKey = async (keyBase64) => {
                 const raw = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
-                return await window.crypto.subtle.importKey(
+                return await crypto.subtle.importKey(
                     'spki',
                     raw,
                     { name: 'RSA-OAEP', hash: 'SHA-256' },
@@ -56,18 +62,16 @@ function Chat() {
                 );
             };
 
-            const receiverKey = await importPublicKey(receiverData.publicKey);
-            const senderKey = await importPublicKey(senderData.publicKey);
+            const receiverKey = await importKey(receiverData.publicKey);
+            const senderKey = await importKey(senderData.publicKey);
 
-            const encodedMsg = new TextEncoder().encode(message);
-
-            const [encryptedForReceiver, encryptedForSender] = await Promise.all([
-                window.crypto.subtle.encrypt({ name: 'RSA-OAEP' }, receiverKey, encodedMsg),
-                window.crypto.subtle.encrypt({ name: 'RSA-OAEP' }, senderKey, encodedMsg)
+            const [encryptedKeyForReceiver, encryptedKeyForSender] = await Promise.all([
+                crypto.subtle.encrypt({ name: "RSA-OAEP" }, receiverKey, rawAesKey),
+                crypto.subtle.encrypt({ name: "RSA-OAEP" }, senderKey, rawAesKey),
             ]);
 
-            const base64Receiver = btoa(String.fromCharCode(...new Uint8Array(encryptedForReceiver)));
-            const base64Sender = btoa(String.fromCharCode(...new Uint8Array(encryptedForSender)));
+            const aesKeyForReceiver = btoa(String.fromCharCode(...new Uint8Array(encryptedKeyForReceiver)));
+            const aesKeyForSender = btoa(String.fromCharCode(...new Uint8Array(encryptedKeyForSender)));
 
             const res = await fetch('https://securechat-n501.onrender.com/api/message/send', {
                 method: 'POST',
@@ -75,8 +79,10 @@ function Chat() {
                 body: JSON.stringify({
                     from: fromEmail.toLowerCase(),
                     to: toEmail.toLowerCase(),
-                    contentForReceiver: base64Receiver,
-                    contentForSender: base64Sender,
+                    encryptedMessage,
+                    aesKeyForReceiver,
+                    aesKeyForSender,
+                    iv: ivBase64
                 }),
             });
 
@@ -133,7 +139,6 @@ function Chat() {
             )}
         </div>
     );
-
 }
 
 export default Chat;
