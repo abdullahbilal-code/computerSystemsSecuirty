@@ -28,6 +28,7 @@ function Login({ onLogin }) {
                 setMessage(data.msg);
                 setPublicKey(data.publicKey);
                 localStorage.setItem('userEmail', form.email.toLowerCase());
+                localStorage.setItem('token', data.token);
                 onLogin();
                 navigate('/send-message');
             } else {

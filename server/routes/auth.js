@@ -1,19 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const User = require('../models/User');
+const { signToken } = require('../helper/makeToken');
 
-// Helper: Generate RSA key pair
-function generateKeyPair() {
-    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-        modulusLength: 2048,
-        publicKeyEncoding: { type: 'spki', format: 'pem' },
-        privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
-    });
-
-    return { publicKey, privateKey };
-}
 
 // Register Route
 router.post('/register', async (req, res) => {
@@ -33,7 +23,13 @@ router.post('/register', async (req, res) => {
         });
 
         await newUser.save();
-        res.status(201).json({ msg: 'User registered successfully' });
+        const token = signToken(newUser);
+        res.status(201).json({
+            msg: 'User registered successfully',
+            token,
+            email: newUser.email,
+            publicKey: newUser.publicKey
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -53,7 +49,13 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ msg: 'Invalid email or password' });
         }
 
-        res.status(200).json({ msg: 'Login successful', publicKey: user.publicKey });
+        const token = signToken(user);
+        res.status(200).json({
+            msg: 'Login successful',
+            token,
+            email: user.email,
+            publicKey: user.publicKey
+        });
 
     } catch (err) {
         res.status(500).json({ error: 'Server error. Please try again later.' });

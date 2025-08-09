@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { authHeaders } from '../helper/api';
 
 function Chat() {
     const [fromEmail, setFromEmail] = useState('');
@@ -75,7 +76,7 @@ function Chat() {
 
             const res = await fetch('https://securechat-n501.onrender.com/api/message/send', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
                 body: JSON.stringify({
                     from: fromEmail.toLowerCase(),
                     to: toEmail.toLowerCase(),

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { authHeaders } from '../helper/api';
 
 function Inbox() {
     const [email, setEmail] = useState('');
@@ -19,7 +20,9 @@ function Inbox() {
 
         setLoadingInbox(true);
         try {
-            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email}`);
+            const res = await fetch(`https://securechat-n501.onrender.com/api/message/inbox/${email}`, {
+                headers: { ...authHeaders() }
+            });
             const data = await res.json();
             setInbox(data);
         } catch (err) {
@@ -144,8 +147,8 @@ function Inbox() {
             {inbox.length === 0 && !loadingInbox ? (
                 <p>No messages yet.</p>
             ) : (
-                inbox.map((msg, i) => {
-                    const isSentByMe = msg.from.toLowerCase() === email.toLowerCase();
+                inbox?.map((msg, i) => {
+                    const isSentByMe = msg?.from?.toLowerCase() === email?.toLowerCase();
                     return (
                         <div
                             key={i}

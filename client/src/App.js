@@ -12,6 +12,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('token');
     setIsLoggedIn(false);
     window.location.href = '/login';
   };
