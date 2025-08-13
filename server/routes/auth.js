@@ -57,6 +57,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
+
 // GET /api/auth/user/:email
 router.get('/user/:email', async (req, res) => {
     const email = req.params.email.toLowerCase(); 
