@@ -1,4 +1,4 @@
-export function authHeaders() {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-}
+export const authHeaders = () => {
+    const t = localStorage.getItem('token');   // saved at login
+    return t ? { Authorization: `Bearer ${t}` } : {};
+};

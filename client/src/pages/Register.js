@@ -6,7 +6,7 @@ function Register() {
     const [form, setForm] = useState({ email: '', password: '' });
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
-    
+
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
@@ -84,6 +84,8 @@ function Register() {
 
             const data = await res.json();
             if (res.ok) {
+                localStorage.setItem('userEmail', data.email);
+                localStorage.setItem('token', data.token);
                 setMessage('Registered successfully! Your private keys have been downloaded.');
                 navigate('/send-message');
             } else {
