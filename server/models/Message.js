@@ -7,6 +7,7 @@ const MessageSchema = new mongoose.Schema({
     aesKeyForReceiver: { type: String, required: true },
     aesKeyForSender: { type: String, required: true },
     iv: { type: String, required: true },
+    signature: { type: String, required: true },
     timestamp: { type: Date, default: Date.now }
 });
 

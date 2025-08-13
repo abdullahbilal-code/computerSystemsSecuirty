@@ -8,19 +8,14 @@ const { signToken } = require('../helper/makeToken');
 // Register Route
 router.post('/register', async (req, res) => {
     try {
-        const { email, password, publicKey } = req.body;
+        const { email, password, publicKey, signingPublicKey } = req.body;
 
         const existing = await User.findOne({ email });
         if (existing) return res.status(400).json({ msg: 'Email already exists' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = new User({
-            email,
-            password: hashedPassword,
-            publicKey,
-            privateKey: "frontend-only",
-        });
+        const newUser = new User({ email, password: hashedPassword, publicKey, signingPublicKey });
 
         await newUser.save();
         const token = signToken(newUser);
@@ -64,9 +59,10 @@ router.post('/login', async (req, res) => {
 
 // GET /api/auth/user/:email
 router.get('/user/:email', async (req, res) => {
-    const user = await User.findOne({ email: req.params.email });
+    const email = req.params.email.toLowerCase(); // important
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ publicKey: user.publicKey });
+    res.json({ publicKey: user.publicKey, signingPublicKey: user.signingPublicKey });
 });
 
 
