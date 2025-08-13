@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
 
 // GET /api/auth/user/:email
 router.get('/user/:email', async (req, res) => {
-    const email = req.params.email.toLowerCase(); // important
+    const email = req.params.email.toLowerCase(); 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ publicKey: user.publicKey, signingPublicKey: user.signingPublicKey });
